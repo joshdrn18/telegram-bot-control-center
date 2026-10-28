@@ -33,7 +33,7 @@ function cookieValue(request, name) {
   return "";
 }
 function cookie(token, maxAge) {
-  return `bcc_session=${token}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=${maxAge}`;
+  return `bcc_session=${token}; HttpOnly; Secure; SameSite=None; Path=/; Max-Age=${maxAge}`;
 }
 async function session(request, env) {
   const token = cookieValue(request, "bcc_session");
@@ -136,6 +136,9 @@ async function handle(request, env) {
   const url = new URL(request.url);
   const path = url.pathname;
   if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: cors(request, env) });
+  if (request.method === "GET" && (path === "/" || path === "/health")) {
+    return response({ ok: true, service: "Telegram Bot Control Center API", health: "online", timestamp: new Date().toISOString() }, request, env);
+  }
   if (path === "/api/telemetry" && request.method === "POST") return handleTelemetry(request, env);
 
   if (path === "/api/login" && request.method === "POST") {
@@ -162,13 +165,14 @@ async function handle(request, env) {
   if (!(await requireSession(request, env))) return response({ error: "Unauthorized" }, request, env, 401);
 
   if (path === "/api/dashboard" && request.method === "GET") {
-    const [counts, bots, errors, checks] = await Promise.all([
+    const [counts, bots, errors, checks, activities] = await Promise.all([
       env.DB.prepare("SELECT COUNT(*) total, SUM(CASE WHEN status='healthy' THEN 1 ELSE 0 END) healthy, SUM(CASE WHEN status IN ('degraded','stale') THEN 1 ELSE 0 END) issues FROM bots WHERE enabled=1").first(),
       env.DB.prepare("SELECT id,name,health_url,enabled,created_at,last_heartbeat_at,last_health_at,last_health_code,status,last_error FROM bots ORDER BY name").all(),
       env.DB.prepare("SELECT e.id,e.bot_id,b.name bot_name,e.event,e.severity,e.message,e.source,e.group_id,e.created_at FROM telemetry_events e JOIN bots b ON b.id=e.bot_id WHERE e.severity IN ('error','critical','warning') ORDER BY e.id DESC LIMIT 30").all(),
-      env.DB.prepare("SELECT h.id,h.bot_id,b.name bot_name,h.ok,h.status_code,h.latency_ms,h.detail,h.created_at FROM health_checks h JOIN bots b ON b.id=h.bot_id ORDER BY h.id DESC LIMIT 30").all()
+      env.DB.prepare("SELECT h.id,h.bot_id,b.name bot_name,h.ok,h.status_code,h.latency_ms,h.detail,h.created_at FROM health_checks h JOIN bots b ON b.id=h.bot_id ORDER BY h.id DESC LIMIT 30").all(),
+      env.DB.prepare("SELECT e.id,e.bot_id,b.name bot_name,e.event,e.severity,e.message,e.source,e.group_id,e.created_at FROM telemetry_events e JOIN bots b ON b.id=e.bot_id ORDER BY e.id DESC LIMIT 30").all()
     ]);
-    return response({ counts, bots: bots.results, errors: errors.results, checks: checks.results }, request, env);
+    return response({ counts, bots: bots.results, errors: errors.results, checks: checks.results, activities: activities.results }, request, env);
   }
   if (path === "/api/bots" && request.method === "POST") {
     let body;
