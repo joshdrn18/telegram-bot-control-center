@@ -1,6 +1,21 @@
 const API = (window.BCC_API_BASE || "__API_BASE_URL__").replace(/\/$/, "");
 const $ = id => document.getElementById(id);
 let lastToken = "";
+const sectionTargets = ["bots", "errors", "checks", "activity"];
+function setCollapsed(id, collapsed) {
+  const el = $(id); if (!el) return;
+  el.classList.toggle("is-collapsed", collapsed);
+  document.querySelectorAll(`.section-toggle[data-target="${id}"]`).forEach(b => b.textContent = collapsed ? "Expand" : "Collapse");
+}
+$("collapseAll").addEventListener("click", () => {
+  const collapse = $("collapseAll").dataset.mode !== "collapsed";
+  sectionTargets.forEach(id => setCollapsed(id, collapse));
+  $("collapseAll").dataset.mode = collapse ? "collapsed" : "expanded";
+  $("collapseAll").textContent = collapse ? "+ Expand all" : "− Minimize all";
+});
+document.querySelectorAll(".section-toggle").forEach(btn => btn.addEventListener("click", () => {
+  const id = btn.dataset.target; setCollapsed(id, !$(id).classList.contains("is-collapsed"));
+}));
 async function api(path, options = {}) {
   const res = await fetch(API + path, { credentials: "include", ...options, headers: { "Content-Type": "application/json", ...(options.headers || {}) } });
   let data = {};
@@ -36,7 +51,7 @@ async function refresh() {
   try {
     const d = await api("/api/dashboard"), c = d.counts || {};
     $("total").textContent = c.total || 0; $("healthy").textContent = c.healthy || 0; $("issues").textContent = c.issues || 0; $("eventCount").textContent = (d.errors || []).length;
-    $("bots").innerHTML = d.bots.length ? d.bots.map(b => `<article class="bot-card"><div><div class="bot-name">${esc(b.name)}</div><div class="bot-url">${esc(b.health_url || "Telemetry only — no health URL")}</div><div class="bot-meta">Heartbeat: ${esc(time(b.last_heartbeat_at))} · Last check: ${esc(time(b.last_health_at))}</div>${b.last_error ? `<div class="bot-meta" style="color:var(--red)">${esc(b.last_error)}</div>` : ""}</div><span class="status ${esc(b.status)}">${esc(b.status.toUpperCase())}</span><button class="remove" title="Remove monitor registration" data-remove="${esc(b.id)}">×</button></article>`).join("") : '<div class="empty">No bots registered yet. Select “Add bot” to begin.</div>';
+    $("bots").innerHTML = d.bots.length ? d.bots.map(b => `<article class="bot-card"><div class="bot-main"><div class="bot-name">${esc(b.name)}</div><div class="bot-url">${esc(b.health_url || "Telemetry only — no health URL")}</div><div class="bot-meta">Heartbeat: ${esc(time(b.last_heartbeat_at))} · Last check: ${esc(time(b.last_health_at))}</div>${b.last_error ? `<div class="bot-meta" style="color:var(--red)">${esc(b.last_error)}</div>` : ""}</div><span class="status ${esc(b.status)}">${esc(b.status.toUpperCase())}</span><button class="remove" title="Remove monitor registration" data-remove="${esc(b.id)}">×</button></article>`).join("") : '<div class="empty">No bots registered yet. Select “Add bot” to begin.</div>';
     $("errors").innerHTML = d.errors.length ? d.errors.map(e => `<div class="event"><div class="eventtop"><span class="eventname">${esc(e.bot_name)} · ${esc(e.event)}</span><span class="sev ${esc(e.severity)}">${esc(e.severity)}</span></div><div class="eventmsg">${esc(e.message)}${e.group_id ? ` <span class="muted">· group ${esc(e.group_id)}</span>` : ""}</div><div class="eventtime">${esc(time(e.created_at))} · ${esc(e.source || "worker")}</div></div>`).join("") : '<div class="empty">No warnings or errors recorded.</div>';
     $("checks").innerHTML = d.checks.length ? d.checks.map(c => `<div class="event"><div class="eventtop"><span class="eventname">${esc(c.bot_name)}</span><span class="sev ${c.ok ? "" : "error"}">${c.ok ? "OK" : "FAILED"}</span></div><div class="eventmsg">${esc(c.detail)}${c.latency_ms != null ? ` · ${esc(c.latency_ms)} ms` : ""}</div><div class="eventtime">${esc(time(c.created_at))}</div></div>`).join("") : '<div class="empty">Health checks will appear after the first scheduled run.</div>';
     const activity = d.activities || [];
