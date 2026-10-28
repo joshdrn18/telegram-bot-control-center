@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>Bot Control Center</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="ambient a"></div><div class="ambient b"></div>
+<main class="shell">
+  <header class="topbar">
+    <div class="brand"><div class="brandmark">⌘</div><div><div class="brandname">BOT CONTROL CENTER</div><div class="sub">Telegram infrastructure monitor</div></div></div>
+    <div class="top-actions"><span class="live-dot"></span><span class="muted small">15 MIN MONITORING</span><button id="logout" class="ghost hidden">Log out ↗</button></div>
+  </header>
+  <section id="loginView" class="login-wrap">
+    <div class="login-card">
+      <div class="eyebrow">PRIVATE ADMIN ACCESS</div><h1>Everything.<br><span>Under control.</span></h1>
+      <p class="muted">Monitor your Telegram bots, Workers, groups, and runtime errors from one place.</p>
+      <form id="loginForm"><label>Username<input id="username" autocomplete="username" required></label><label>Password<input id="password" type="password" autocomplete="current-password" required></label><button class="primary wide" type="submit">Sign in <span>→</span></button><div id="loginError" class="error-text"></div></form>
+      <div class="secure-note">⌑ Secure session · private monitoring</div>
+    </div>
+  </section>
+  <section id="appView" class="hidden">
+    <div class="pagehead"><div><div class="eyebrow">OVERVIEW / ALL SYSTEMS</div><h1>Your bots, <span>at a glance.</span></h1><p class="muted">Health checks run every 15 minutes. Telemetry reports arrive as events happen.</p></div><button id="refresh" class="ghost">↻ Refresh</button></div>
+    <div class="stats">
+      <article class="stat"><div class="statlabel">REGISTERED BOTS</div><div id="total" class="statvalue">—</div><div class="statfoot">Across your projects</div></article>
+      <article class="stat"><div class="statlabel">HEALTHY</div><div id="healthy" class="statvalue green">—</div><div class="statfoot">Latest status healthy</div></article>
+      <article class="stat"><div class="statlabel">NEEDS ATTENTION</div><div id="issues" class="statvalue red">—</div><div class="statfoot">Degraded or stale</div></article>
+      <article class="stat"><div class="statlabel">RECENT EVENTS</div><div id="eventCount" class="statvalue">—</div><div class="statfoot">Warnings and errors</div></article>
+    </div>
+    <div class="section-head"><div><h2>Registered bots</h2><p class="muted">Health endpoints and internal heartbeat status</p></div><button id="addOpen" class="primary">＋ Add bot</button></div>
+    <div id="bots" class="bot-list"><div class="empty">Loading bot inventory…</div></div>
+    <div class="two-col">
+      <section class="panel"><div class="panelhead"><div><h2>Recent errors</h2><p class="muted">Warnings, failures, and critical events</p></div><span class="pill">LIVE LOG</span></div><div id="errors" class="event-list"><div class="empty">No events loaded</div></div></section>
+      <section class="panel"><div class="panelhead"><div><h2>Health checks</h2><p class="muted">Latest endpoint response history</p></div><span class="pill">15 MIN</span></div><div id="checks" class="event-list"><div class="empty">No checks loaded</div></div></section>
+    </div>
+    <div class="footer muted">Control Center · Existing bot Workers remain independent.</div>
+  </section>
+</main>
+<div id="modal" class="modal hidden"><div class="modal-card"><button id="closeModal" class="modal-close">×</button><div class="eyebrow">REGISTER MONITOR TARGET</div><h2>Add a bot</h2><p class="muted">This does not change the bot's Telegram webhook.</p><form id="botForm"><label>Bot display name<input id="botName" placeholder="e.g. Finance Bot" required maxlength="100"></label><label>HTTPS health URL <span class="muted">(optional)</span><input id="healthUrl" type="url" placeholder="https://your-worker.workers.dev/health"></label><button class="primary wide" type="submit">Register bot →</button><div id="botError" class="error-text"></div></form><div id="tokenResult" class="token-result hidden"><strong>Telemetry token — copy it now</strong><p class="muted small">This token is shown once. Save it as the bot Worker's MONITOR_TOKEN secret.</p><code id="tokenText"></code><button id="copyToken" class="ghost wide">Copy token</button></div></div></div>
+<div id="toast" class="toast"></div>
+<script src="config.js"></script><script src="app.js"></script>
+</body></html>

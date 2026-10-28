@@ -1,0 +1,14 @@
+name = "bot-control-center-api"
+main = "index.js"
+compatibility_date = "2026-10-28"
+
+[triggers]
+crons = ["*/15 * * * *"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "bot-control-center-db"
+database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"
+
+[vars]
+PANEL_ORIGIN = "https://REPLACE-WITH-YOUR-PAGES.pages.dev"
