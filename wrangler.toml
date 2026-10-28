@@ -12,3 +12,19 @@ database_id = "916721ba-e3f6-477e-aab4-edc9a24c2406"
 
 [vars]
 PANEL_ORIGIN = "https://telegram-bot-control-center.pages.dev"
+
+# ...
+[observability.logs]
+enabled = true
+head_sampling_rate = 1
+invocation_logs = true
+persist = true
+
+[observability.traces]
+enabled = false
+head_sampling_rate = 1
+persist = true
+
+[observability.issue_detection]
+enabled = false
+# ...
